@@ -97,6 +97,17 @@ make_args() {
 	[ -n "${EXTRA_CMDS:-}"  ] && printf ' %s' "$EXTRA_CMDS"
 	[ -n "${GCC_64:-}"      ] && printf ' %s' "$GCC_64"
 	[ -n "${GCC_32:-}"      ] && printf ' %s' "$GCC_32"
+	# Legacy arm64 Android kernels link their compat (32-bit) VDSO by invoking
+	# clang directly with --target=arm-linux-androideabi.  The old Makefiles do
+	# not add the downloaded GCC 4.9 bin directory to that clang invocation, so
+	# clang falls back to the runner's x86 /usr/bin/ld.  -B makes the matching
+	# arm-linux-androideabi-ld discoverable without changing the kernel source.
+	if [[ "${GCC_32:-}" == CROSS_COMPILE_ARM32=* ]]; then
+		local arm32_prefix arm32_bin
+		arm32_prefix=${GCC_32#CROSS_COMPILE_ARM32=}
+		arm32_bin=${arm32_prefix%/*}
+		[ "$arm32_bin" != "$arm32_prefix" ] && printf ' KCFLAGS=-B%s/' "$arm32_bin"
+	fi
 	if is_true "${USE_LLVM:-false}"; then
 		printf ' LLVM=1 LLVM_IAS=1'
 		[ -n "${GCC_64:-}" ] || printf ' CROSS_COMPILE=aarch64-linux-gnu-'
