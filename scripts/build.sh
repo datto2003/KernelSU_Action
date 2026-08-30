@@ -97,6 +97,10 @@ make_args() {
 	[ -n "${EXTRA_CMDS:-}"  ] && printf ' %s' "$EXTRA_CMDS"
 	[ -n "${GCC_64:-}"      ] && printf ' %s' "$GCC_64"
 	[ -n "${GCC_32:-}"      ] && printf ' %s' "$GCC_32"
+	# Some Android 4.9 vendor trees append -Werror directly in their Makefiles,
+	# so CONFIG_CC_WERROR alone cannot override it.  KCFLAGS is appended after
+	# the tree's flags, preserving diagnostics while making them non-fatal.
+	is_true "${DISABLE_CC_WERROR:-false}" && printf ' KCFLAGS=-Wno-error'
 	if is_true "${USE_LLVM:-false}"; then
 		printf ' LLVM=1 LLVM_IAS=1'
 		[ -n "${GCC_64:-}" ] || printf ' CROSS_COMPILE=aarch64-linux-gnu-'
