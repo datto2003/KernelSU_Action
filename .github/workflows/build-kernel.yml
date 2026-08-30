@@ -9,7 +9,10 @@ on:
       config:
         description: "Config file to build (path, relative to the repo root)"
         required: false
-        default: "config.env"
+        # This branch is the Mi 8 baseline stage.  Keeping its profile as the
+        # dispatch default prevents an accidental build of the repository's
+        # generic config.env (which targets a different device).
+        default: "config/dipper-baseline.env"
         type: string
       # "config" on the options below means "use whatever the config file says".
       # It is the default so that running the form without touching anything
