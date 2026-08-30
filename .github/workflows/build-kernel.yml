@@ -202,7 +202,10 @@ jobs:
           else
             status=$?
             echo "::error::Kernel build failed. Showing the first error with context; download the kernel-build-log artifact for the complete output."
-            first_error=$(grep -n -m1 -E '(^|[[:space:]])(fatal[[:space:]]+)?error:|undefined reference|collect2: error' "$build_log" || true)
+            # DTC reports failures as uppercase "ERROR:", while make itself
+            # may be the only process that prints an error marker.  Match both
+            # forms so parallel compiler output cannot hide the true failure.
+            first_error=$(grep -ni -m1 -E '(^|[[:space:]])(fatal[[:space:]]+)?error:|undefined reference|collect2: error|make(\[[0-9]+\])?: \*\*\*' "$build_log" || true)
             if [ -n "$first_error" ]; then
               line=${first_error%%:*}
               start=$(( line > 25 ? line - 25 : 1 ))
